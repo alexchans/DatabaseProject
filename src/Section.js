@@ -1,56 +1,107 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-class Section extends React.Component {
-    render() {
-        return (
-            <div>
-                <h1>Section</h1>
-                <label htmlFor="SectionNumber">Section Number</label>
+function Section() {
+    const [state, setState] = useState({
+        sectionNumber: '',
+        courseNumber: '',
+        instructorId: '',
+        semester: '',
+        year: '',
+        enrolledStudents: ''
+    });
+
+    const [message, setMessage] = useState({ text: '', type: '' });
+
+    const handleChange = (event) => {
+        const { id, value } = event.target;
+        setState(prevState => ({
+            ...prevState,
+            [id]: value
+        }));
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            await axios.post(`http://localhost:8080/sections/`, {
+                ...state
+            });
+            setMessage({ text: 'Submission successful!', type: 'success' });
+            // Optionally reset form fields
+            setState({ sectionNumber: '', courseNumber: '', instructorId: '', semester: '', year: '', enrolledStudents: '' });
+        } catch (error) {
+            setMessage({ text: 'Failed to submit. Please try again.', type: 'error' });
+        }
+    };
+
+    return (
+        <div>
+            <h1>Section</h1>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="sectionNumber">Section Number</label>
                 <div>
                     <input
                         type="text"
-                        id="SectionNumber"
+                        id="sectionNumber"
+                        value={state.sectionNumber}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="CourseNumber">Course Number</label>
+                <label htmlFor="courseNumber">Course Number</label>
                 <div>
                     <input
                         type="text"
-                        id="CourseNumber"
+                        id="courseNumber"
+                        value={state.courseNumber}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="InstructorID">Instructor ID</label>
+                <label htmlFor="instructorId">Instructor ID</label>
                 <div>
                     <input
                         type="text"
-                        id="InstructorID"
+                        id="instructorId"
+                        value={state.instructorId}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="Semester">Semester</label>
+                <label htmlFor="semester">Semester</label>
                 <div>
                     <input
                         type="text"
-                        id="Semester"
+                        id="semester"
+                        value={state.semester}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="Year">Year</label>
+                <label htmlFor="year">Year</label>
                 <div>
                     <input
                         type="text"
-                        id="Year"
+                        id="year"
+                        value={state.year}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="EnrolledStudents">Enrolled Students</label>
+                <label htmlFor="enrolledStudents">Enrolled Students</label>
                 <div>
                     <input
                         type="text"
-                        id="EnrolledStudents"
+                        id="enrolledStudents"
+                        value={state.enrolledStudents}
+                        onChange={handleChange}
                     />
                 </div>
                 <button type="submit">Submit</button>
-            </div>
-        );
-    }
+            </form>
+            {message.text && (
+                <div className={message.type === 'success' ? 'success-message' : 'error-message'}>
+                    {message.text}
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default Section;

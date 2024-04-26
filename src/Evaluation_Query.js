@@ -12,7 +12,7 @@ class Evaluation_Query extends React.Component {
                         id="Semester"
                     />
                 </div>
-                <label htmlFor="Percentage">Enter a Percentage with number, i.e. enter 1 for 1 percent</label>
+                <label htmlFor="Percentage">Enter Pass Rate Percentage with number, i.e. enter 1 for 1 percent</label>
                 <div>
                     <input
                         type="text"
