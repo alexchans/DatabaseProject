@@ -10,6 +10,7 @@ class EvaluationClass extends React.Component {
             semester: '',
             instructor: '',
             sections: [],
+            courseObjectives: [],
             message: { text: '', type: '' }
         };
 
@@ -25,13 +26,134 @@ class EvaluationClass extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        const { degreeId, semester, instructor } = this.state;
+        const { degreeId, semester, instructor, courseObjectives } = this.state;
+
+        // Fetch all courseObjectives to store in a list
+        // axios.get('http://localhost:8080/courseObjectives/')
+        //     .then(response => {
+        //         const courseObjectives_buff = response.data;
+        //         this.setState({ 
+        //             courseObjectives: courseObjectives_buff,
+        //             message: { text: "Fetched all courseObjectives: " + courseObjectives[0].courseNumber, type: 'success' }
+        //         });
+        //     })
+        //     .catch(error => {
+        //         console.error('Fetching error:', error);
+        //         this.setState({
+        //             message: { text: "Fetching error:" + error, type: 'error' }
+        //         });
+        //     });
+        axios.get('http://localhost:8080/courseObjectives/')
+            .then(response => {
+                const courseObjectives_buff = JSON.parse(JSON.stringify(response.data));
+                this.setState({ 
+                    courseObjectives: courseObjectives_buff,
+                }, () => {
+                    this.setState({
+                        // message: { text: "Fetched all courseObjectives: " + this.state.courseObjectives[0].courseNumber, type: 'success' }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Fetching error:', error);
+                this.setState({
+                    message: { text: "Fetching error:" + error, type: 'error' }
+                });
+            });
+
+
         axios.post(`http://localhost:8080/Evaluation/${degreeId}/${semester}/${instructor}`)
             .then(response => {
-                const sortedSections = response.data.sort((a, b) => b.year - a.year);
+                // Sort the sections by year in descending order
+                const sections = response.data.sort((a, b) => b.year - a.year);
+    
                 this.setState({
-                    sections: sortedSections,
+                    sections: sections,  // Set the sorted sections to state
                     message: { text: 'Data fetched successfully!', type: 'success' }
+                });
+                
+                // Loop through each section and make a POST request
+                sections.forEach(section => {
+                    // filter courseObjectives by the right courseNumber of the section
+//                     const objectiveCodes = courseObjectives.filter(obj => obj.courseNumber.toString() === section.courseNumber.toString());
+//                     this.setState({ 
+//                         // message: { text: "typs comp: " + typeof section.courseNumber + typeof courseObjectives[0].CourseNumber, type: 'success' }
+//                         message: { text: "objectiveCodes: " + objectiveCodes[0] + objectiveCodes[0], type: 'success' }
+//                     });
+
+// // DEBUG: NOT SURE IF FILTER WORKS
+//                     console.log('objectiveCodes:', objectiveCodes);
+                    // this.setState({ 
+                    //     courseObjectives: objectiveCodes,
+                    // }, () => {
+                    //     this.setState({
+                    //         message: { text: "Fetched all courseObjectives: " + this.state.objectiveCodes[0].courseNumber, type: 'success' }
+                    //     });
+                    // });
+
+                    // this.setState({
+                    //     message: { text: "CO:" + courseObjectives, type: 'success' }
+                    // });
+
+                    // For each section, loop through each courseObjective to create an Evaluation tuple
+                    courseObjectives.forEach(async objectiveCode => {
+                        if (objectiveCode.courseNumber !== section.courseNumber) {
+                            return;  // Skip this iteration and continue with the next one
+                        }
+                        
+                        const evaluation = {
+                            degreeID : degreeId,
+                            sectionNumber : section.sectionNumber,
+                            courseNumber : section.courseNumber,
+                            objectiveCode : objectiveCode,
+                            method : null,
+                            levelACount : -1,
+                            levelBCount : -1,
+                            levelCCount : -1,
+                            levelFCount : -1,
+                            improvementSuggestion : null
+                        };
+
+                        axios.post(`http://localhost:8080/Evaluation/`, {
+                            degreeID : degreeId,
+                            sectionNumber : section.sectionNumber,
+                            courseNumber : section.courseNumber,
+                            objectiveCode : objectiveCode,
+                            method : null,
+                            levelACount : -1,
+                            levelBCount : -1,
+                            levelCCount : -1,
+                            levelFCount : -1,
+                            improvementSuggestion : null
+                    
+                    
+                        });
+                            // .then(response => {
+                            //     console.log('Evaluation tuple created successfully:', response.data);
+                            //     this.setState({
+                            //         // message: { text: 'Evaluation tuple created successfully!', type: 'success' }
+                            //     });
+                            // })
+                            // .catch(error => {
+                            //     console.error('Failed to create Evaluation tuple:', error);
+                            //     this.setState({
+                            //         message: { text: 'Failed to create Evaluation tuple!', type: 'error' }
+                            //     });
+                            // });
+                        // event.preventDefault(); // Prevents the default form submission behavior
+                        // try {
+                        //     await axios.post(`http://localhost:8080/Evaluation/`, {
+                        //         courseNumber: state.courseNumber,
+                        //         name: state.name
+                        //     });
+                        //     setMessage({ text: 'Submission successful!', type: 'success' }); // Set success message
+                        //     setState({ courseNumber: '', name: '' }); // Optionally reset form fields
+                        // } catch (error) {
+                        //     setMessage({ text: 'Failed to submit. Please try again.', type: 'error' }); // Set error message
+                        // }
+                        
+
+                    });
                 });
             })
             .catch(error => {
@@ -40,6 +162,7 @@ class EvaluationClass extends React.Component {
                 });
                 console.error('Fetching error:', error);
             });
+        this.setState({ buttonClicked: true });
     }
 
     handleEditClick(sectionId) {
@@ -64,6 +187,11 @@ class EvaluationClass extends React.Component {
                     <div className={message.type}>{message.text}</div>
                 )}
                 <h2>Sections:</h2>
+                {this.state.courseObjectives.map((section, index) => (
+                    <div key={index}>
+                        <p>{section.courseNumber} {section.objectiveCode}</p>
+                    </div>
+                ))}
                 {sections.map((section, index) => (
                     <div key={index}>
                         <p>{semester} {section.year} - {section.courseNumber} {section.sectionNumber}</p>
