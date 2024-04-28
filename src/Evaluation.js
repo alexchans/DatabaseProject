@@ -1,35 +1,77 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-class Evaluation extends React.Component {
-    render() {
-        return (
-            <div>
-                <h1>Enter Evaluation</h1>
-                <label htmlFor="DegreeID">Degree ID</label>
+function Evaluation() {
+    const [state, setState] = useState({
+        degreeId: '',
+        semester: '',
+        instructorId: ''
+    });
+    const [sections, setSections] = useState([]); // State to hold sections data
+
+    const handleChange = (event) => {
+        const { id, value } = event.target;
+        setState(prevState => ({
+            ...prevState,
+            [id]: value
+        }));
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await axios.get(`http://localhost:8080/sections/instructorSections/${state.instructorId}/${state.semester}`);
+            setSections(response.data); // Store the sections data
+        } catch (error) {
+        }
+    };
+
+    return (
+        <div>
+            <h1>Enter Evaluation</h1>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="degreeId">Degree ID</label>
                 <div>
                     <input
                         type="text"
-                        id="DegreeID"
+                        id="degreeId"
+                        value={state.degreeId}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="Semester">Semester</label>
+                <label htmlFor="semester">Semester</label>
                 <div>
                     <input
                         type="text"
-                        id="Semester"
+                        id="semester"
+                        value={state.semester}
+                        onChange={handleChange}
                     />
                 </div>
-                <label htmlFor="Instructor">Instructor</label>
+                <label htmlFor="instructorId">Instructor ID</label>
                 <div>
                     <input
                         type="text"
-                        id="Instructor"
+                        id="instructorId"
+                        value={state.instructorId}
+                        onChange={handleChange}
                     />
                 </div>
                 <button type="submit">Request Data</button>
+            </form>
+            <div>
+                {sections.map((section, index) => (
+                    <div key={index} className='flex'>
+                        <p>Section Number: {section.sectionNumber}</p>
+                        <p>Course Number: {section.courseNumber}</p>
+                        <p>Semester: {section.semester}</p>
+                        <p>Year: {section.year}</p>
+                        <p>Enrolled Students: {section.enrolledStudents}</p>
+                    </div>
+                ))}
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 export default Evaluation;
