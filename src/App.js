@@ -15,6 +15,7 @@ import Degree_Query from './Degree_Query';
 import Course_Query from './Course_Query';
 import Instructor_Query from './Instructor_Query';
 import Evaluation_Query from './Evaluation_Query';
+import EditEvaluation from './EditEvaluation'; 
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/Course_Query" element={<Course_Query />} />
         <Route path="/Instructor_Query" element={<Instructor_Query />} />
         <Route path="/Evaluation_Query" element={<Evaluation_Query />} />
+        <Route path="/edit-evaluation/:id" element={<EditEvaluation />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Router>
