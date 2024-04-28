@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-//this is the evaluation file 
+
 class Evaluation extends React.Component {
     constructor(props) {
         super(props);
@@ -8,6 +8,7 @@ class Evaluation extends React.Component {
             degreeId: '',
             semester: '',
             instructor: '',
+            sections: [],  // State to hold fetched sections
             message: { text: '', type: '' }
         };
 
@@ -18,66 +19,71 @@ class Evaluation extends React.Component {
 
     handleChange(event) {
         const { id, value } = event.target;
-        this.setState(prevState => ({
-            ...prevState,
-            [id]: value
-        }));
+        this.setState({ [id]: value });
     }
 
     handleSubmit(event) {
         event.preventDefault();
-        try {
-            axios.post(`http://localhost:8080/Evaluation/`, {
-                degreeId: this.state.degreeId,
-                semester: this.state.semester,
-                instructor: this.state.instructor
+        const { degreeId, semester, instructor } = this.state;
+        axios.post(`http://localhost:8080/Evaluation/${degreeId}/${semester}/${instructor}`)
+            .then(response => {
+                // Sort the sections by year in descending order
+                const sections = response.data.sort((a, b) => b.year - a.year);
+    
+                this.setState({
+                    sections: sections,  // Set the sorted sections to state
+                    message: { text: 'Data fetched successfully!', type: 'success' }
+                });
+            })
+            .catch(error => {
+                this.setState({
+                    message: { text: 'Failed to fetch data. Please try again.', type: 'error' }
+                });
+                console.error('Fetching error:', error);
             });
-            this.setState({ message: { text: 'Submitted successful!', type: 'success' } });
-            this.setState({ degreeId: '', semester: '', instructor: '' });
-        } catch (error) {
-            this.setState({ message: { text: 'Failed to submit. Please try again.', type: 'error' } });
-        }
     }
+    
 
     render() {
+        const { degreeId, semester, instructor, sections, message } = this.state;
         return (
             <div>
                 <h1>Enter Evaluation</h1>
                 <form onSubmit={this.handleSubmit}>
                     <label htmlFor="degreeId">Degree ID</label>
-                    <div>
-                        <input
-                            type="text"
-                            id="degreeId"
-                            value={this.state.degreeId}
-                            onChange={this.handleChange}
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        id="degreeId"
+                        value={degreeId}
+                        onChange={this.handleChange}
+                    />
                     <label htmlFor="semester">Semester</label>
-                    <div>
-                        <input
-                            type="text"
-                            id="semester"
-                            value={this.state.semester}
-                            onChange={this.handleChange}
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        id="semester"
+                        value={semester}
+                        onChange={this.handleChange}
+                    />
                     <label htmlFor="instructor">Instructor</label>
-                    <div>
-                        <input
-                            type="text"
-                            id="instructor"
-                            value={this.state.instructor}
-                            onChange={this.handleChange}
-                        />
-                    </div>
-                    <button type="submit">Request Data</button>
+                    <input
+                        type="text"
+                        id="instructor"
+                        value={instructor}
+                        onChange={this.handleChange}
+                    />
+                    <button type="submit">Fetch Sections</button>
                 </form>
-                {this.state.message.text && (
-                    <div className={this.state.message.type}>
-                        {this.state.message.text}
+                {message.text && (
+                    <div className={message.type}>
+                        {message.text}
                     </div>
                 )}
+                <h2>Sections:</h2>
+                {sections.map((section, index) => (
+                    <div key={index}>
+                        <p> {semester} {section.year} - {section.courseNumber} {section.sectionNumber} </p>
+                    </div>
+                ))}
             </div>
         );
     }
