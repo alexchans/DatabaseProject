@@ -5,6 +5,7 @@ class Evaluation extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            buttonClicked: false,
             degreeId: '',
             semester: '',
             instructor: '',
@@ -41,37 +42,38 @@ class Evaluation extends React.Component {
                 });
                 console.error('Fetching error:', error);
             });
+        this.setState({ buttonClicked: true });
     }
     
 
     render() {
-        const { degreeId, semester, instructor, sections, message } = this.state;
+        const { buttonClicked, degreeId, semester, instructor, sections, message } = this.state;
         return (
             <div>
                 <h1>Enter Evaluation</h1>
                 <form onSubmit={this.handleSubmit}>
-                    <label htmlFor="degreeId">Degree ID</label>
+                    <label htmlFor="degreeId"> Degree ID</label>
                     <input
                         type="text"
                         id="degreeId"
                         value={degreeId}
                         onChange={this.handleChange}
                     />
-                    <label htmlFor="semester">Semester</label>
+                    <label htmlFor="semester"> Semester</label>
                     <input
                         type="text"
                         id="semester"
                         value={semester}
                         onChange={this.handleChange}
                     />
-                    <label htmlFor="instructor">Instructor</label>
+                    <label htmlFor="instructor"> Instructor</label>
                     <input
                         type="text"
                         id="instructor"
                         value={instructor}
                         onChange={this.handleChange}
                     />
-                    <button type="submit">Fetch Sections</button>
+                    <button type="submit">Change Sections</button>
                 </form>
                 {message.text && (
                     <div className={message.type}>
@@ -79,11 +81,15 @@ class Evaluation extends React.Component {
                     </div>
                 )}
                 <h2>Sections:</h2>
-                {sections.map((section, index) => (
-                    <div key={index}>
-                        <p> {semester} {section.year} - {section.courseNumber} {section.sectionNumber} </p>
-                    </div>
-                ))}
+                {
+                    buttonClicked && sections.length === 0 ? 
+                    <p>No Courses!</p> : 
+                    sections.map((section, index) => (
+                        <div key={index}>
+                            <p> {semester} {section.year} - {section.courseNumber} {section.sectionNumber} </p>
+                        </div>
+                    ))
+                }
             </div>
         );
     }
