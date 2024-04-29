@@ -44,7 +44,7 @@ class Evaluation_Query extends React.Component {
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="passRatePercentage">Pass Rate Percentage (0-100 integer)</label>
+                        <label htmlFor="passRatePercentage">Pass Rate Percentage (0-100 integer, -1 means retrieve even those with no evaluation)</label>
                         <input
                             type="number"
                             id="passRatePercentage"
