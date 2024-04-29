@@ -37,13 +37,16 @@ function Evaluation() {
     };
 
     const handleRequest = (courseNumber, sectionNumber) => async (event) => {
-        console.log("handleRequest called with:", courseNumber, sectionNumber); // Ensure this gets logged
+        console.log("handleRequest called with:", courseNumber, sectionNumber);
         try {
             const response = await axios.get(`http://localhost:8080/evaluations/findSpecifics/${state.degreeId}/${courseNumber}/${sectionNumber}`);
-            setEvaluations(prevEvaluations => [...prevEvaluations, response.data]);
+            // Directly set the evaluations to the new data from response
+            setEvaluations(response.data);
         } catch (error) {
+            console.error('Error fetching evaluations:', error);
         }
     };
+
 
     const handleEvaluationSubmit = async (event) => {
         event.preventDefault();
@@ -64,6 +67,17 @@ function Evaluation() {
         } catch (error) {
         }
     };
+
+    const deleteEvaluation = async (evaluationId) => {
+        try {
+            const response = await axios.delete(`http://localhost:8080/evaluations/${evaluationId}`);
+            console.log('Delete successful', response.data);
+            setEvaluations(prevEvaluations => prevEvaluations.filter(e => e.evaluationId !== evaluationId));
+        } catch (error) {
+            console.error('Failed to delete evaluation:', error);
+        }
+    };
+
     return (
         <div>
             <h1>Enter Evaluation</h1>
@@ -180,24 +194,23 @@ function Evaluation() {
                 />
                 <button type="submit">Create Evaluation</button>
             </form>
-            {evaluations.map((sectionEvaluations, index) => (
+            {evaluations.map((evaluation, index) => (
                 <div key={index}>
-                    {sectionEvaluations.map((evaluation, evalIndex) => (
-                        <div key={evalIndex}>
-                            <p>Degree ID: {evaluation.degreeId}</p>
-                            <p>Course Number: {evaluation.courseNumber}</p>
-                            <p>Section Number: {evaluation.sectionNumber}</p>
-                            <p>Objective Code: {evaluation.objectiveCode}</p>
-                            <p>Method: {evaluation.method}</p>
-                            <p>Level A Count: {evaluation.levelACount}</p>
-                            <p>Level B Count: {evaluation.levelBCount}</p>
-                            <p>Level C Count: {evaluation.levelCCount}</p>
-                            <p>Level F Count: {evaluation.levelFCount}</p>
-                            <p>Improved Suggestions: {evaluation.improvementSuggestion}</p>
-                        </div>
-                    ))}
+                    <p>Evaluation ID: {evaluation.evaluationId}</p>
+                    <p>Degree ID: {evaluation.degreeId}</p>
+                    <p>Course Number: {evaluation.courseNumber}</p>
+                    <p>Section Number: {evaluation.sectionNumber}</p>
+                    <p>Objective Code: {evaluation.objectiveCode}</p>
+                    <p>Method: {evaluation.method}</p>
+                    <p>Level A Count: {evaluation.levelACount}</p>
+                    <p>Level B Count: {evaluation.levelBCount}</p>
+                    <p>Level C Count: {evaluation.levelCCount}</p>
+                    <p>Level F Count: {evaluation.levelFCount}</p>
+                    <p>Improved Suggestions: {evaluation.improvementSuggestion}</p>
+                    <button onClick={() => deleteEvaluation(evaluation.evaluationId)}>Delete this Evaluation</button>
                 </div>
             ))}
+
         </div>
     );
 }
