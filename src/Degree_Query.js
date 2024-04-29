@@ -81,6 +81,7 @@ function DegreeCourses() {
             const url = `http://localhost:8080/sections/range?courseNumber=${currentCourseNumber}&startSemester=${startSemester}&startYear=${startYear}&endSemester=${endSemester}&endYear=${endYear}`;
             const response = await axios.get(url);
             setSections(response.data);
+            console.log(response.data);
         } catch (error) {
             setSections([]);
         }
@@ -117,6 +118,7 @@ function DegreeCourses() {
                     </ul>
                 </div>
             )}
+            <h4>Click on Course Number to get objectivecodes, and before retrive range</h4>
             <form onSubmit={handleRange}>
                 <label htmlFor="startSemester">Start Semester:</label>
                 <input type="text" id="startSemester" value={startSemester} onChange={handleInputChange} />
