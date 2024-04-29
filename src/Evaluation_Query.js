@@ -65,7 +65,7 @@ class Evaluation_Query extends React.Component {
                             <strong>Year:</strong> {section.section.year}<br/>
                             <strong>Instructor ID:</strong> {section.section.instructorId}<br/>
                             <strong>Enrolled Students:</strong> {section.section.enrolledStudents}<br/>
-                            <strong>Evaluation Status:</strong> {(section.levelACount + section.levelBCount + section.levelCCount + section.levelFCount> 0) ?  'Complete' : 'Not Entered'}<br/>
+                            <strong>Evaluation Status:</strong> {(section.levelACount + section.levelBCount + section.levelCCount + section.levelFCount > 0) ?  'Complete' : 'Not Entered'}<br/>
                             <strong>Improvement Suggestion:</strong> {(section.improvementSuggestion ? 'Entered' : 'Not Entered') + ': ' +  section.improvementSuggestion}
                         </li>
                     ))}
