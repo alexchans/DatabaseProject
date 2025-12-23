@@ -1,15 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Navbar from './Navbar';
 
 class Home extends React.Component {
     render() {
         return (
             <div>
-                <h1>Home</h1>
-                <div className='flex'>
-                    <Link className='no-underline' to="/DataEntry">DataEntry</Link>
-                    <Link className='no-underline' to="/Evaluation">Evaluation</Link>
-                    <Link className='no-underline' to="/Query">Query</Link>
+                <Navbar />
+                <div style={{ padding: '2rem' }}>
+                    <h1>Home</h1>
                 </div>
             </div>
         );

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Navbar from './Navbar';
+import './Evaluation.css';
 
 function Evaluation() {
     const [state, setState] = useState({
@@ -8,7 +10,7 @@ function Evaluation() {
         instructorId: '',
         objectiveCode: '',
         method: '',
-        levelACount: 0, // Assuming initial value should be 0
+        levelACount: 0,
         levelBCount: 0,
         levelCCount: 0,
         levelFCount: 0,
@@ -16,8 +18,8 @@ function Evaluation() {
         sectionNumber: "",
         courseNumber: ""
     });
-    const [sections, setSections] = useState([]); // State to hold sections data
-    const [evaluations, setEvaluations] = useState([]); // State to hold sections data
+    const [sections, setSections] = useState([]); 
+    const [evaluations, setEvaluations] = useState([]); 
 
     const handleChange = (event) => {
         const { id, value } = event.target;
@@ -31,8 +33,9 @@ function Evaluation() {
         event.preventDefault();
         try {
             const response = await axios.get(`http://localhost:8080/sections/instructorSections/${state.instructorId}/${state.semester}`);
-            setSections(response.data); // Store the sections data
+            setSections(response.data); 
         } catch (error) {
+            console.error("Error fetching sections", error);
         }
     };
 
@@ -40,13 +43,17 @@ function Evaluation() {
         console.log("handleRequest called with:", courseNumber, sectionNumber);
         try {
             const response = await axios.get(`http://localhost:8080/evaluations/findSpecifics/${state.degreeId}/${courseNumber}/${sectionNumber}`);
-            // Directly set the evaluations to the new data from response
             setEvaluations(response.data);
+            // Optionally pre-fill the create form with the selected section info
+            setState(prev => ({
+                ...prev,
+                courseNumber: courseNumber,
+                sectionNumber: sectionNumber
+            }));
         } catch (error) {
             console.error('Error fetching evaluations:', error);
         }
     };
-
 
     const handleEvaluationSubmit = async (event) => {
         event.preventDefault();
@@ -64,7 +71,11 @@ function Evaluation() {
                 improvementSuggestion: state.improvementSuggestion
             };
             await axios.post(`http://localhost:8080/evaluations/`, evaluationData);
+            alert("Evaluation created successfully!");
+            // Refresh evaluations list if we know the context, or just list all? 
+            // Ideally we re-fetch evaluations for this section to show the new one.
         } catch (error) {
+            console.error("Error creating evaluation", error);
         }
     };
 
@@ -79,138 +90,159 @@ function Evaluation() {
     };
 
     return (
-        <div>
-            <h1>Enter Evaluation</h1>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="degreeId">Degree ID: </label>
-                <input
-                    type="text"
-                    id="degreeId"
-                    value={state.degreeId}
-                    onChange={handleChange}
-                />
-                <label htmlFor="semester">Semester: </label>
+        <div className="evaluation-page">
+            <Navbar />
+            <div className="evaluation-container">
+                <h1 className="page-title">Evaluation Management</h1>
+                
+                {/* Search Section */}
+                <div className="card">
+                    <h2 className="section-header">Find Instructor Sections</h2>
+                    <form onSubmit={handleSubmit} className="form-grid">
+                        <div className="form-group">
+                            <label htmlFor="degreeId">Degree ID</label>
+                            <input
+                                type="text"
+                                id="degreeId"
+                                value={state.degreeId}
+                                onChange={handleChange}
+                                placeholder="e.g. CS"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="semester">Semester</label>
+                            <input
+                                type="text"
+                                id="semester"
+                                value={state.semester}
+                                onChange={handleChange}
+                                placeholder="e.g. Fall 2024"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="instructorId">Instructor ID</label>
+                            <input
+                                type="text"
+                                id="instructorId"
+                                value={state.instructorId}
+                                onChange={handleChange}
+                                placeholder="e.g. 12345"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <button type="submit" className="btn">Request Data</button>
+                        </div>
+                    </form>
+                </div>
 
-                <input
-                    type="text"
-                    id="semester"
-                    value={state.semester}
-                    onChange={handleChange}
-                />
-                <label htmlFor="instructorId">Instructor ID: </label>
-
-                <input
-                    type="text"
-                    id="instructorId"
-                    value={state.instructorId}
-                    onChange={handleChange}
-                />
-                <button type="submit">Request Data</button>
-            </form>
-            <div>
-                {sections.map((section, index) => (
-                    <div key={index}>
-                        <div className='flex'>
-                            <p>Section Number: {section.sectionNumber}</p>
-                            <p>Course Number: {section.courseNumber}</p>
-                            <p>Semester: {section.semester}</p>
-                            <p>Year: {section.year}</p>
-                            <p>Enrolled Students: {section.enrolledStudents}</p>
-                            <button onClick={handleRequest(section.courseNumber, section.sectionNumber)}>Request Evaluations</button>
+                {/* Sections List */}
+                {sections.length > 0 && (
+                    <div className="card">
+                        <h2 className="section-header">Sections Found</h2>
+                        <div className="results-grid">
+                            {sections.map((section, index) => (
+                                <div key={index} className="result-card">
+                                    <div className="form-grid" style={{ alignItems: 'center' }}>
+                                        <div>
+                                            <p><strong>Course:</strong> {section.courseNumber}</p>
+                                            <p><strong>Section:</strong> {section.sectionNumber}</p>
+                                            <p><strong>Term:</strong> {section.semester} {section.year}</p>
+                                            <p><strong>Enrolled:</strong> {section.enrolledStudents}</p>
+                                        </div>
+                                        <div>
+                                            <button 
+                                                className="btn btn-sm"
+                                                onClick={handleRequest(section.courseNumber, section.sectionNumber)}
+                                            >
+                                                View/Add Evaluations
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                ))}
-            </div>
-            <form onSubmit={handleEvaluationSubmit}>
-                <label htmlFor="objectiveCode">Objective Code: </label>
-                <input
-                    type="text"
-                    id="objectiveCode"
-                    value={state.objectiveCode}
-                    onChange={handleChange}
-                />
-                <label htmlFor="method">Method: </label>
-                <input
-                    type="text"
-                    id="method"
-                    value={state.method}
-                    onChange={handleChange}
-                />
-                <label htmlFor="levelACount">Level A Count: </label>
-                <input
-                    type="number"
-                    id="levelACount"
-                    value={state.levelACount}
-                    onChange={handleChange}
-                />
-                <label htmlFor="levelBCount">Level B Count: </label>
-                <input
-                    type="number"
-                    id="levelBCount"
-                    value={state.levelBCount}
-                    onChange={handleChange}
-                />
-                <label htmlFor="levelCCount">Level C Count: </label>
-                <input
-                    type="number"
-                    id="levelCCount"
-                    value={state.levelCCount}
-                    onChange={handleChange}
-                />
-                <label htmlFor="levelFCount">Level F Count: </label>
-                <input
-                    type="number"
-                    id="levelFCount"
-                    value={state.levelFCount}
-                    onChange={handleChange}
-                />
-                <label htmlFor="improvementSuggestion">Improved Suggestions: </label>
-                <input
-                    type="text"
-                    id="improvementSuggestion"
-                    value={state.improvementSuggestion}
-                    onChange={handleChange}
-                />
-                <label htmlFor="degreeId">Degree ID: </label>
-                <input
-                    type="text"
-                    id="degreeId"
-                    value={state.degreeId}
-                    onChange={handleChange}
-                />
-                <label htmlFor="sectionNumber">Section Number: </label>
-                <input
-                    type="text"
-                    id="sectionNumber"
-                    value={state.sectionNumber}
-                    onChange={handleChange}
-                />
-                <label htmlFor="courseNumber">Course Number: </label>
-                <input
-                    type="text"
-                    id="courseNumber"
-                    value={state.courseNumber}
-                    onChange={handleChange}
-                />
-                <button type="submit">Create Evaluation</button>
-            </form>
-            {evaluations.map((evaluation, index) => (
-                <div key={index}>
-                    <p>Evaluation ID: {evaluation.evaluationId}</p>
-                    <p>Degree ID: {evaluation.degreeId}</p>
-                    <p>Course Number: {evaluation.courseNumber}</p>
-                    <p>Section Number: {evaluation.sectionNumber}</p>
-                    <p>Objective Code: {evaluation.objectiveCode}</p>
-                    <p>Method: {evaluation.method}</p>
-                    <p>Level A Count: {evaluation.levelACount}</p>
-                    <p>Level B Count: {evaluation.levelBCount}</p>
-                    <p>Level C Count: {evaluation.levelCCount}</p>
-                    <p>Level F Count: {evaluation.levelFCount}</p>
-                    <p>Improved Suggestions: {evaluation.improvementSuggestion}</p>
-                    <button onClick={() => deleteEvaluation(evaluation.evaluationId)}>Delete this Evaluation</button>
-                </div>
-            ))}
+                )}
 
+                {/* Create Evaluation Form */}
+                <div className="card">
+                    <h2 className="section-header">Create New Evaluation</h2>
+                    <form onSubmit={handleEvaluationSubmit}>
+                        <div className="two-col-grid">
+                            <div className="form-group">
+                                <label htmlFor="courseNumber">Course Number</label>
+                                <input type="text" id="courseNumber" value={state.courseNumber} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="sectionNumber">Section Number</label>
+                                <input type="text" id="sectionNumber" value={state.sectionNumber} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="degreeId">Degree ID</label>
+                                <input type="text" id="degreeId" value={state.degreeId} onChange={handleChange} />
+                            </div>
+                             <div className="form-group">
+                                <label htmlFor="objectiveCode">Objective Code</label>
+                                <input type="text" id="objectiveCode" value={state.objectiveCode} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="method">Method</label>
+                                <input type="text" id="method" value={state.method} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="improvementSuggestion">Improvement Suggestion</label>
+                                <input type="text" id="improvementSuggestion" value={state.improvementSuggestion} onChange={handleChange} />
+                            </div>
+                        </div>
+
+                        <h3 style={{marginTop: '1.5rem', marginBottom: '1rem', color: '#666'}}>Grade Dictionary</h3>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label htmlFor="levelACount">As</label>
+                                <input type="number" id="levelACount" value={state.levelACount} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="levelBCount">Bs</label>
+                                <input type="number" id="levelBCount" value={state.levelBCount} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="levelCCount">Cs</label>
+                                <input type="number" id="levelCCount" value={state.levelCCount} onChange={handleChange} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="levelFCount">Fs</label>
+                                <input type="number" id="levelFCount" value={state.levelFCount} onChange={handleChange} />
+                            </div>
+                        </div>
+                        
+                        <div style={{marginTop: '2rem'}}>
+                             <button type="submit" className="btn">Create Evaluation</button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Existing Evaluations List */}
+                {evaluations.length > 0 && (
+                    <div className="card">
+                        <h2 className="section-header">Existing Evaluations</h2>
+                        <div className="results-grid">
+                            {evaluations.map((evaluation, index) => (
+                                <div key={index} className="result-card">
+                                    <p><strong>ID:</strong> {evaluation.evaluationId} | <strong>Obj:</strong> {evaluation.objectiveCode}</p>
+                                    <p><strong>Method:</strong> {evaluation.method}</p>
+                                    <p><strong>Grades:</strong> A:{evaluation.levelACount}, B:{evaluation.levelBCount}, C:{evaluation.levelCCount}, F:{evaluation.levelFCount}</p>
+                                    <p><strong>Suggestion:</strong> {evaluation.improvementSuggestion}</p>
+                                    <div className="evaluation-actions">
+                                        <button className="btn btn-danger btn-sm" onClick={() => deleteEvaluation(evaluation.evaluationId)}>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
